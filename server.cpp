@@ -3,6 +3,10 @@
 // Build in Visual Studio: create a Console App project, add this file,
 // it will auto-link ws2_32.lib via the #pragma comment below.
 
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600   // Vista or later
+#endif
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>

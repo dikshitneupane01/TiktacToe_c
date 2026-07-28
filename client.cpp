@@ -3,6 +3,10 @@
 // Build in Visual Studio: create a Console App project, add this file,
 // it will auto-link ws2_32.lib via the #pragma comment below.
 
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600   // Vista or later, needed for inet_pton under MinGW
+#endif
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
@@ -69,7 +73,13 @@ int main() {
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
-    inet_pton(AF_INET, serverIp.c_str(), &serverAddr.sin_addr);
+    serverAddr.sin_addr.s_addr = inet_addr(serverIp.c_str());
+    if (serverAddr.sin_addr.s_addr == INADDR_NONE) {
+        std::cerr << "Invalid IP address entered.\n";
+        closesocket(sock);
+        WSACleanup();
+        return 1;
+    }
 
     if (connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "connect() failed: " << WSAGetLastError() << "\n";
