@@ -1,9 +1,3 @@
-// server_mt.cpp
-// Multithreaded Multiplayer Tic-Tac-Toe Server over TCP using Winsock2
-// The main thread only accepts and pairs players. Each paired match runs
-// on its own dedicated thread, so multiple games can run at the same time.
-//
-// Compile with MinGW:
 //   g++ server_mt.cpp -o server_mt.exe -lws2_32
 
 #ifndef _WIN32_WINNT
@@ -22,7 +16,6 @@
 #define PORT 54000
 #define BOARD_SIZE 9
 
-// Protects std::cout so log lines from different game threads don't interleave mid-line.
 CRITICAL_SECTION g_consoleCS;
 
 void logMsg(const std::string& msg) {
@@ -30,8 +23,6 @@ void logMsg(const std::string& msg) {
     std::cout << msg << std::endl;
     LeaveCriticalSection(&g_consoleCS);
 }
-
-// ---------- Networking helpers ----------
 
 bool sendLine(SOCKET s, const std::string& msg) {
     std::string out = msg + "\n";
@@ -55,8 +46,6 @@ bool recvLine(SOCKET s, std::string& outLine) {
     }
     return true;
 }
-
-// ---------- Game logic (pure functions, no shared state) ----------
 
 std::string boardToString(const char board[BOARD_SIZE]) {
     return std::string(board, BOARD_SIZE);
@@ -85,7 +74,6 @@ bool isBoardFull(const char board[BOARD_SIZE]) {
     return true;
 }
 
-// ---------- Per-game thread ----------
 
 struct GameThreadParams {
     SOCKET clientX;
@@ -93,9 +81,6 @@ struct GameThreadParams {
     int gameId;
 };
 
-// Runs one complete match (with restarts) between two already-connected clients.
-// This function only ever touches its own local 'board' array, so no locking
-// is needed between game threads -- each match is fully independent.
 DWORD WINAPI gameThreadProc(LPVOID param) {
     GameThreadParams* p = (GameThreadParams*)param;
     SOCKET clientX = p->clientX;
@@ -182,8 +167,6 @@ DWORD WINAPI gameThreadProc(LPVOID param) {
     return 0;
 }
 
-// ---------- Main thread: accept + pair players ----------
-
 int main() {
     InitializeCriticalSection(&g_consoleCS);
 
@@ -212,7 +195,6 @@ int main() {
         return 1;
     }
 
-    // Backlog of 8 lets several players queue up while waiting to be paired.
     if (listen(listenSocket, 8) == SOCKET_ERROR) {
         std::cerr << "listen() failed: " << WSAGetLastError() << "\n";
         closesocket(listenSocket);
@@ -251,10 +233,9 @@ int main() {
             closesocket(clientO);
             continue;
         }
-        CloseHandle(hThread); // detach; the thread cleans up its own sockets on exit
+        CloseHandle(hThread); 
     }
 
-    // Unreachable in this simple always-on server, but kept for completeness.
     closesocket(listenSocket);
     DeleteCriticalSection(&g_consoleCS);
     WSACleanup();
