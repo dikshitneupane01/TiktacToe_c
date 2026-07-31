@@ -1,7 +1,3 @@
-// client_gui.cpp
-// Multiplayer Tic-Tac-Toe GUI Client over TCP using Winsock2 + Win32 API
-// Compile with MinGW:
-//   g++ client_gui.cpp -o client_gui.exe -lws2_32 -mwindows
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
@@ -16,10 +12,6 @@
 
 #define PORT 54000
 #define BOARD_SIZE 9
-
-// Custom window messages posted from the network thread to the UI thread.
-// For messages carrying data, lParam is a heap-allocated std::string* that
-// the UI thread must delete after reading.
 #define WM_APP_SYMBOL     (WM_APP + 1)
 #define WM_APP_BOARD      (WM_APP + 2)
 #define WM_APP_YOURTURN   (WM_APP + 3)
@@ -30,7 +22,7 @@
 #define WM_APP_EXIT       (WM_APP + 8)
 #define WM_APP_DISCONNECT (WM_APP + 9)
 
-#define ID_CELL_BASE 100   // cells: 100..108
+#define ID_CELL_BASE 100 
 #define ID_CONNECT   200
 #define ID_IP_EDIT   201
 
@@ -45,7 +37,6 @@ char g_mySymbol = 0;
 std::string g_board(BOARD_SIZE, '_');
 bool g_myTurn = false;
 
-// ---------- Networking helpers ----------
 
 bool sendLine(SOCKET s, const std::string& msg) {
     std::string out = msg + "\n";
@@ -69,8 +60,6 @@ bool recvLine(SOCKET s, std::string& outLine) {
     }
     return true;
 }
-
-// ---------- Background network thread ----------
 
 DWORD WINAPI networkThreadProc(LPVOID param) {
     HWND hwnd = (HWND)param;
@@ -113,8 +102,6 @@ DWORD WINAPI networkThreadProc(LPVOID param) {
     return 0;
 }
 
-// ---------- UI helpers ----------
-
 void refreshCells() {
     for (int i = 0; i < BOARD_SIZE; i++) {
         char c = g_board[i];
@@ -127,8 +114,6 @@ void refreshCells() {
 void setStatus(const std::string& s) {
     SetWindowTextA(g_hStatus, s.c_str());
 }
-
-// ---------- Window procedure ----------
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
@@ -280,9 +265,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
-
-// ---------- Entry point ----------
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
